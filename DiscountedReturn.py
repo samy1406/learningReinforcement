@@ -18,18 +18,30 @@ class RecylingEnv:
         self.rewards = [2, 0, 0, 1, 10]
 
         self.terminal_states = [0, 4]
+        
+        self.has_wrapper = False
     
     def reset(self):
         self.current_state = 1
         self.time_left = 3
+        self.has_wrapper = False
         return self.current_state
     
     def step(self, action):
+        intended_state = self.current_state
         if action == 'left' and self.current_state >0:
-            self.current_state -= 1
+            intended_state -= 1
         elif action == 'right' and self.current_state < 4:
-            self.current_state += 1
+            intended_state += 1
         
+        if intended_state in self.terminal_states and not self.has_wrapper:
+            pass
+        else:
+            self.current_state = intended_state
+
+        if self.current_state == 3:
+            self.has_wrapper = True
+
         self.time_left -= 1
 
         reward = self.rewards[self.current_state]
