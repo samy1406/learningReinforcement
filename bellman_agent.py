@@ -2,16 +2,16 @@ import random
 
 class RecylingEnv:
     def __init__(self):
-        self.current_state = 1
-        self.time_left = 3
-        self.rewards = [2,0,0,1,10]
-        self.terminal_states = [0, 4]
+        self.current_state = 6
+        self.time_left = 6
+        self.rewards = [2,0,0,0,1,0,0,0,0,0,10]
+        self.terminal_states = [0, 10]
         self.has_wrapper = False
 
     
     def reset(self):
-        self.current_state = 1
-        self.time_left = 3
+        self.current_state = 6
+        self.time_left = 6
         self.has_wrapper = False
         return (self.current_state, self. has_wrapper)
     
@@ -19,7 +19,7 @@ class RecylingEnv:
         intended_state = self.current_state
         if action == 'left' and self.current_state > 0:
             intended_state -= 1
-        elif action == 'right' and self.current_state < 4:
+        elif action == 'right' and self.current_state < 10:
             intended_state += 1
         
         if intended_state in self.terminal_states and not self.has_wrapper:
@@ -28,7 +28,7 @@ class RecylingEnv:
         else:
             self.current_state = intended_state
         
-        if self.current_state == 3:
+        if self.current_state == 5:
             self.has_wrapper = True
         
         self.time_left -= 1
@@ -44,7 +44,7 @@ env = RecylingEnv()
 
 q_table = {}
 
-for s in range(5):
+for s in range(11):
     for w in [False, True]:
         for a in ['left', 'right']:
             q_table[(s, w, a)] = 0.0
@@ -52,7 +52,7 @@ for s in range(5):
     
 gamma = 0.9
 epsilon = 0.2
-episodes = 1000
+episodes = 10
 
 for episode in range(episodes):
     state = env.reset()
@@ -78,6 +78,7 @@ for episode in range(episodes):
         
         # 2. take the action
         next_state, reward, done = env.step(action)
+        # print(f"Position {position}, reward {reward}, Next state{next_state}")
         next_pos, next_wrap = next_state
 
         # 3. Bellman equation update
@@ -87,8 +88,12 @@ for episode in range(episodes):
 
         # Q(s, a) = R(s, a) + gamma * max Q(s', a')
         q_table[(position, has_wrapper, action)] = reward + (gamma * max_next_q)
+        print(f"q table ({position}, {action}) = {reward} + ({gamma} * max({next_left_val}, {next_right_val})) = {q_table[(position, has_wrapper, action)]} ")
+        print("\n")
 
         state = next_state
+
+    print(f"episode end {episode} {state}")    
     
 
 print("Training finished!")
@@ -99,7 +104,7 @@ print("\n--- Final Learned Q-Table ---")
 print(f"{'State':<6} | {'Wrapper':<8} | {'Left Value':<12} | {'Right Value':<12}")
 print("-" * 47)
 
-for s in range(5):
+for s in range(11):
     for w in [False, True]:
         left_val = q_table[(s, w, 'left')]
         right_val = q_table[(s, w, 'right')]
